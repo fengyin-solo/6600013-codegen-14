@@ -1,12 +1,15 @@
 import { create } from 'zustand'
 import type { DesignParams, PatternType } from '../types'
 import { THEMES } from '../themes/palettes'
+import { generateBrandPalette, generateBgFromPrimary, buildPatternPalette } from '../utils/colorUtils'
 
 interface DesignStore extends DesignParams {
   svgContent: string
   setParam: <K extends keyof DesignParams>(key: K, value: DesignParams[K]) => void
   setPattern: (p: PatternType) => void
   setTheme: (id: string) => void
+  setBrandColors: (primary: string, secondary: string) => void
+  toggleBrandColors: (enabled: boolean) => void
   randomSeed: () => void
   setSvgContent: (s: string) => void
   exportSvg: () => void
@@ -26,11 +29,46 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
   width: 800,
   height: 1000,
   svgContent: '',
+  useBrandColors: false,
+  brandPrimary: '#ff6b35',
+  brandSecondary: '#004e89',
   setParam: (key, value) => set({ [key]: value } as any),
-  setPattern: (p) => set({ pattern: p }),
+  setPattern: (p) => {
+    const state = get()
+    if (state.useBrandColors) {
+      const palette = buildPatternPalette(state.brandPrimary, state.brandSecondary, p)
+      set({ pattern: p, palette })
+    } else {
+      set({ pattern: p })
+    }
+  },
   setTheme: (id) => {
     const theme = THEMES.find(t => t.id === id)
-    if (theme) set({ palette: theme.colors })
+    if (theme) {
+      set({ palette: theme.colors, useBrandColors: false })
+    }
+  },
+  setBrandColors: (primary: string, secondary: string) => {
+    const state = get()
+    const palette = buildPatternPalette(primary, secondary, state.pattern)
+    const bgColor = generateBgFromPrimary(primary)
+    set({
+      brandPrimary: primary,
+      brandSecondary: secondary,
+      palette,
+      bgColor,
+      useBrandColors: true,
+    })
+  },
+  toggleBrandColors: (enabled: boolean) => {
+    if (enabled) {
+      const { brandPrimary, brandSecondary, pattern } = get()
+      const palette = buildPatternPalette(brandPrimary, brandSecondary, pattern)
+      const bgColor = generateBgFromPrimary(brandPrimary)
+      set({ useBrandColors: true, palette, bgColor })
+    } else {
+      set({ useBrandColors: false, palette: THEMES[0].colors, bgColor: '#030712' })
+    }
   },
   randomSeed: () => set({ seed: Math.floor(Math.random() * 99999) }),
   setSvgContent: (s) => set({ svgContent: s }),

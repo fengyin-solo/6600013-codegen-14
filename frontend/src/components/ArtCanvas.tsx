@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useDesignStore } from '../store/design'
-import { createRng, generateSpiral, generateFractal, generateWave, generateCircles, generateNoise } from '../generators/patterns'
+import { createRng, generateSpiral, generateFractal, generateWave, generateCircles, generateNoise, generateVoronoi } from '../generators/patterns'
 
 export default function ArtCanvas() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -16,6 +16,7 @@ export default function ArtCanvas() {
       case 'wave':    content = generateWave(width, height, iterations, scale, palette, rng, strokeWidth, opacity); break
       case 'circles': content = generateCircles(width, height, iterations, scale, palette, rng, strokeWidth, opacity); break
       case 'noise':   content = generateNoise(width, height, iterations, scale, palette, rng, strokeWidth, opacity); break
+      case 'voronoi': content = generateVoronoi(width, height, iterations, scale, palette, rng, strokeWidth, opacity); break
     }
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <rect width="${width}" height="${height}" fill="${bgColor}"/>

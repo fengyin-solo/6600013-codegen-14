@@ -114,3 +114,56 @@ export function generateNoise(
   }
   return paths
 }
+
+function dist(ax: number, ay: number, bx: number, by: number): number {
+  const dx = ax - bx, dy = ay - by
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+export function generateVoronoi(
+  w: number, h: number, iterations: number, scale: number,
+  palette: string[], rng: Rng, strokeWidth: number, opacity: number
+): string {
+  const siteCount = Math.min(50, Math.floor(iterations / 4) + 5)
+  const sites: { x: number; y: number; color: string }[] = []
+  for (let i = 0; i < siteCount; i++) {
+    sites.push({
+      x: rng() * w,
+      y: rng() * h,
+      color: palette[i % palette.length]
+    })
+  }
+
+  const cellSize = Math.max(4, Math.floor(8 / scale))
+  let paths = ''
+  
+  for (let y = 0; y < h; y += cellSize) {
+    for (let x = 0; x < w; x += cellSize) {
+      let minD = Infinity, secondMinD = Infinity
+      let closest = 0
+      for (let i = 0; i < sites.length; i++) {
+        const d = dist(x, y, sites[i].x, sites[i].y)
+        if (d < minD) {
+          secondMinD = minD
+          minD = d
+          closest = i
+        } else if (d < secondMinD) {
+          secondMinD = d
+        }
+      }
+      const edgeFactor = (secondMinD - minD) / (minD + 1)
+      if (edgeFactor < 0.08) {
+        const color = palette[(closest + 1) % palette.length]
+        paths += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${color}" opacity="${opacity}"/>`
+      }
+    }
+  }
+
+  for (let i = 0; i < sites.length; i++) {
+    const s = sites[i]
+    const r = 2 + rng() * 4 * scale
+    paths += `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${s.color}" opacity="${Math.min(1, opacity + 0.2)}"/>`
+  }
+
+  return paths
+}

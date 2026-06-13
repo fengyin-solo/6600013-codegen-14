@@ -12,10 +12,21 @@ export interface DesignParams {
   palette: string[]
   width: number
   height: number
+  useBrandColors: boolean
+  brandPrimary: string
+  brandSecondary: string
 }
 
 export interface ColorTheme {
   id: string
   name: string
   colors: string[]
+}
+
+export interface BrandPreset {
+  id: string
+  name: string
+  primary: string
+  secondary: string
+  industry: string
 }
